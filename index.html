@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Philippine Trivia 🎮</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url(flag.jpg) no-repeat center center fixed;
+      background-size: cover;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    #game {
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .answer-btn, .difficulty-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #007BFF;
+      color: white;
+      transition: background 0.3s;
+    }
+    .answer-btn:hover, .difficulty-btn:hover {
+      background: #0056b3;
+    }
+    #next-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      display: none;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: green;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>Philippine Trivia 🎮</h1>
+
+    <!-- Difficulty Selection -->
+    <div id="difficulty-container">
+      <h2>Select Difficulty</h2>
+      <button class="difficulty-btn" onclick="selectDifficulty('easy')">Easy</button>
+      <button class="difficulty-btn" onclick="selectDifficulty('medium')">Medium</button>
+      <button class="difficulty-btn" onclick="selectDifficulty('hard')">Hard</button>
+    </div>
+
+    <!-- Question Section -->
+    <div id="question-container" style="display: none;">
+      <div class="question" id="question">Question text</div>
+      <div id="answer-buttons"></div>
+    </div>
+    <button id="next-btn">Next</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questionSets = {
+      easy: [
+        {
+          question: "What do Filipino children traditionally do during the New Year's Eve to get taller?",
+          answers: [
+            { text: "Sleep early", correct: false },
+            { text: "Jump", correct: true },
+            { text: "Put coins in their pockets", correct: false },
+            { text: "Stretch", correct: false }
+          ]
+        },
+        {
+          question: "The Philippine folklore creature tikbalang is known for having the body of a human and the head of which animal?",
+          answers: [
+            { text: "Horse", correct: true },
+            { text: "Eagle", correct: false },
+            { text: "Tiger", correct: false },
+            { text: "Frog", correct: false }
+          ]
+        },
+        {
+          question: "During what month does the Christmas season unofficially start in the Philippines?",
+          answers: [
+            { text: "October", correct: false },
+            { text: "August", correct: false },
+            { text: "November", correct: false },
+            { text: "September", correct: true }
+          ]
+        }
+      ],
+      medium: [
+        {
+          question: "Who was the first Filipino to win a gold medal at the Olympics?",
+          answers: [
+            { text: "Hidilyn Diaz", correct: true },
+            { text: "Onyok Velasco", correct: false },
+            { text: "Carlos Yulo", correct: false },
+            { text: "Efren Reyes", correct: false }
+          ]
+        },
+        {
+          question: "What does the title of José Rizal's book Noli Me Tangere translate to?",
+          answers: [
+            { text: "The Untouchable", correct: false },
+            { text: "Touch Me Not", correct: true },
+            { text: "Do Not Disturb", correct: false },
+            { text: "Please Touch Me", correct: false }
+          ]
+        },
+        {
+          question: "What is the national fish of the Philippines?",
+          answers: [
+            { text: "Tilapia", correct: false },
+            { text: "Lapu-Lapu", correct: false },
+            { text: "Dalagang Bukid", correct: false },
+            { text: "Bangus", correct: true }
+          ]
+        }
+      ],
+      hard: [
+        {
+          question: "Who composed the music for the Philippine national anthem, 'Lupang Hinirang'?",
+          answers: [
+            { text: "Julian Felipe", correct: true },
+            { text: "Jose Palma", correct: false },
+            { text: "Antonio Molina", correct: false },
+            { text: "Levi Celerio", correct: false }
+          ]
+        },
+        {
+          question: "In what year did Ferdinand Marcos Sr. declare martial law?",
+          answers: [
+            { text: "1970", correct: false },
+            { text: "1972", correct: true },
+            { text: "1975", correct: false },
+            { text: "1980", correct: false }
+          ]
+        },
+        {
+          question: "Who was the youngest among the three prince brothers sent to capture the mythical Ibong Adarna?",
+          answers: [
+            { text: "Don Pedro", correct: false },
+            { text: "Don Juan", correct: true },
+            { text: "Don Diego", correct: false },
+            { text: "Don Carlos", correct: false }
+          ]
+        }
+      ]
+    };
+
+    const questionElement = document.getElementById("question");
+    const answerButtons = document.getElementById("answer-buttons");
+    const nextButton = document.getElementById("next-btn");
+    const resultElement = document.getElementById("result");
+    const questionContainer = document.getElementById("question-container");
+    const difficultyContainer = document.getElementById("difficulty-container");
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let questions = [];
+
+    function selectDifficulty(level) {
+      questions = questionSets[level];
+      difficultyContainer.style.display = "none";
+      questionContainer.style.display = "block";
+      startGame();
+    }
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      resultElement.innerHTML = "";
+      nextButton.innerText = "Next";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      resetState();
+      let currentQuestion = questions[currentQuestionIndex];
+      questionElement.innerText = currentQuestion.question;
+
+      currentQuestion.answers.forEach(answer => {
+        const button = document.createElement("button");
+        button.innerText = answer.text;
+        button.classList.add("answer-btn");
+        if (answer.correct) {
+          button.dataset.correct = answer.correct;
+        }
+        button.addEventListener("click", selectAnswer);
+        answerButtons.appendChild(button);
+      });
+    }
+
+    function resetState() {
+      nextButton.style.display = "none";
+      while (answerButtons.firstChild) {
+        answerButtons.removeChild(answerButtons.firstChild);
+      }
+    }
+
+    function selectAnswer(e) {
+      const selectedBtn = e.target;
+      const isCorrect = selectedBtn.dataset.correct === "true";
+      if (isCorrect) {
+        selectedBtn.style.background = "green";
+        score++;
+      } else {
+        selectedBtn.style.background = "red";
+      }
+
+      Array.from(answerButtons.children).forEach(button => {
+        if (button.dataset.correct === "true") {
+          button.style.background = "green";
+        }
+        button.disabled = true;
+      });
+
+      nextButton.style.display = "block";
+    }
+
+    function showScore() {
+      resetState();
+      questionElement.innerText = `You scored ${score} out of ${questions.length}! 🎉`;
+      nextButton.innerText = "Play Again";
+      nextButton.style.display = "block";
+    }
+
+    function handleNextButton() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    nextButton.addEventListener("click", () => {
+      if (currentQuestionIndex < questions.length) {
+        handleNextButton();
+      } else {
+        // Reset to difficulty selection
+        questionContainer.style.display = "none";
+        difficultyContainer.style.display = "block";
+        nextButton.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
